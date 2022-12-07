@@ -7,7 +7,7 @@ const url="https://intriguebillingsoft-default-rtdb.firebaseio.com/billdetails.j
 app.use(express.json());
 
 app.use(function (req, res, next) {
-  res.setHeader('Access-Control-Allow-Origin', 'http://localhost:8000');
+  res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
   res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
   res.setHeader('Access-Control-Allow-Credentials', true);
@@ -48,6 +48,10 @@ app.get('/bill_list',function(req,res){
   fs.readFile('bills.json','utf-8',(err,data)=>{
     res.send(JSON.parse(data))
   })
+})
+
+app.get('/welcome',function(req,res){
+  res.send("Hello Malleesh")
 })
 
 app.listen(3000,()=>{
