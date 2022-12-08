@@ -50,8 +50,52 @@ app.get('/bill_list',function(req,res){
   })
 })
 
+app.post('/password',function(req,res){
+  fs.readFile('password.json','utf-8',(err,data)=>{
+    
+    var password=JSON.parse(data);
+    if(password.password==req.body.password){
+      res.json({status:true,message:"Password is correct"})
+    }
+    else{
+      res.json({status:false,message:"Password is incorrect"})
+    }
+  })
+})
+
+app.post('/resetpassword',function(req,res){
+  fs.readFile('password.json','utf-8',function(err,data){
+    var password=JSON.parse(data);
+    if(password.password==req.body.oldpassword){
+      var newpass={
+        password:req.body.newpassword
+      }
+      fs.writeFile('password.json',JSON.stringify(newpass),function(data){
+        res.json({status:true,message:"Password Changed Successfully"})
+      })
+    }else{
+      res.json({status:false,message:"Old password is incorrect"})
+    }
+  })
+})
+
 app.get('/welcome',function(req,res){
   res.send("Hello Malleesh")
+})
+
+app.post('/get_bill',function(req,res){
+  var bill_id=req.body.getterid;
+  var arrfilter=[];
+  fs.readFile('bills.json','utf-8',function(err,data){
+    var billdata=JSON.parse(data);
+    var arrlist=[];
+    for(let i=0;i<billdata.length;i++){
+      if(billdata[i].invoice_number==bill_id){
+        arrlist.push(billdata[i]);
+      }
+    }
+    res.json(arrlist);
+  })
 })
 
 app.listen(3000,()=>{
