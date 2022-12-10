@@ -36,16 +36,10 @@ app.post('/save_bill',function(req,res){
 })
 
 app.get('/print_bill',function(req,res){
-        var arrlastdata=[]
         var printdata=[];
         request({url:url+'bills.json'},(err,res)=>{
             const data=JSON.parse(res.body);
-            for(let key in data){
-                arrlastdata.push([key,data[key]])
-            }
-            for(let i=0;i<arrlastdata.length;i++){
-                printdata.push(arrlastdata[i][1]);
-            }
+            printdata=[...new Map(Object.entries(data)).values()];
         })
         setTimeout(() => {
             res.send({status:true,message:"Bill Fetched Successfully",data:printdata[printdata.length-1]});
@@ -55,15 +49,9 @@ app.get('/print_bill',function(req,res){
 
 app.get('/bill_list',function(req,res){
     var allbill=[];
-    var arrallbills=[];
     request({url:url+'bills.json'},(err,res)=>{
         const data=JSON.parse(res.body);
-        for(let key in data){
-            arrallbills.push([key,data[key]])
-        }
-        for(let i=0;i<arrallbills.length;i++){
-            allbill.push(arrallbills[i][1]);
-        }
+        allbill=[...new Map(Object.entries(data)).values()];
     })
     setTimeout(() => {
         res.send({status:true,message:"Bill Fetched Successfully",data:allbill});
@@ -72,39 +60,23 @@ app.get('/bill_list',function(req,res){
 
 app.post('/get_bill',function(req,res){
     var selectedbill=[];
-    var arrsellbills=[];
     var lastdata=[];
     request({url:url+'bills.json'},(err,res)=>{
         const data=JSON.parse(res.body);
-        for(let key in data){
-            arrsellbills.push([key,data[key]])
-        }
-        for(let i=0;i<arrsellbills.length;i++){
-            selectedbill.push(arrsellbills[i][1]);
-        }
-        for(let i=0;i<selectedbill.length;i++){
-            if(selectedbill[i].invoice_number==req.body.getterid){
-                lastdata.push(selectedbill[i])
-            }
-        }
+        selectedbill=[...new Map(Object.entries(data)).values()];
+        lastdata.push(selectedbill.filter((el)=>el.invoice_number==req.body.getterid))
     })
     setTimeout(() => {
-        res.send({status:true,message:"Bill Fetched Successfully",data:lastdata[0]});
+        res.send({status:true,message:"Bill Fetched Successfully",data:lastdata[0][0]});
     }, timeout);
 })
 
 
 app.post('/password',function(req,res){
     var passfilter=[];
-    var passwords=[];
     request({url:url+'password.json'},(err,res)=>{
         const data=JSON.parse(res.body);
-        for(let key in data){
-            passwords.push([key,data[key]])
-        }
-        for(let i=0;i<passwords.length;i++){
-            passfilter.push(passwords[i][1]);
-        }
+        passfilter=[...new Map(Object.entries(data)).values()];
     })
     setTimeout(() => {
         if(passfilter[passfilter.length-1].password==req.body.password){
@@ -117,15 +89,9 @@ app.post('/password',function(req,res){
 
 app.post('/resetpassword',function(req,res){
     var resetpassfilter=[];
-    var arrpasswords=[];
     request({url:url+'password.json'},(err,res)=>{
         const data=JSON.parse(res.body);
-        for(let key in data){
-            arrpasswords.push([key,data[key]])
-        }
-        for(let i=0;i<arrpasswords.length;i++){
-            resetpassfilter.push(arrpasswords[i][1]);
-        }
+        resetpassfilter=[...new Map(Object.entries(data)).values()];
     })
     setTimeout(() => {
         if(resetpassfilter[resetpassfilter.length-1].password==req.body.oldpassword){
