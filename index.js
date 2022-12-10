@@ -18,8 +18,14 @@ app.use(function (req, res, next) {
     });
 
 app.get('/biller_name',function(req,res){
-    const names=["MalleeshKanna","Kalamani"];  
-    res.send(names);  
+    var names;
+    request({url:url+'billername.json'},(err,res)=>{
+        names=JSON.parse(res.body);
+    })
+    setTimeout(() => {
+        res.send(names);  
+    }, timeout);
+    
     })
 
 app.post('/save_bill',function(req,res){
