@@ -1,103 +1,138 @@
-const express = require('express');
-const fs = require('fs');
+const express=require('express');
 const cors=require('cors');
 const app=express();
-const url="https://intriguebillingsoft-default-rtdb.firebaseio.com/billdetails.json";
+const request=require('request');
+const url='https://intriguebillingsoft-default-rtdb.firebaseio.com/';
+const header= {'Content-Type': 'application/x-www-form-urlencoded'};
+var timeout=2000;
+
 
 app.use(express.json());
-
-app.use(function (req, res, next) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
-  res.setHeader('Access-Control-Allow-Credentials', true);
-  next();
-  });
-
 app.use(cors());
+app.use(function (req, res, next) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, PATCH, DELETE');
+    res.setHeader('Access-Control-Allow-Headers', 'X-Requested-With,content-type');
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    next();
+    });
+
+app.get('/biller_name',function(req,res){
+    const names=["MalleeshKanna","Kalamani"];  
+    res.send(names);  
+    })
 
 app.post('/save_bill',function(req,res){
-  fs.readFile('bills.json','utf-8',(err,data)=>{
-    const info=JSON.parse(data);
-    info.push(req.body);
-    fs.writeFile('bills.json',JSON.stringify(info),(data)=>{
-      res.json({"status":true,"message":"Bill have been saved Successfully"})
+    const data=req.body;
+    request.post({url:url+'bills.json',form:JSON.stringify(data),headers:header},function(error,httpResponse,body){
+        res.send({status:true,message:"Bill Was Added Successfully"})
     })
-  })
-  
 })
 
 app.get('/print_bill',function(req,res){
-  fs.readFile('bills.json','utf-8',(err,data)=>{
-    const printdata=JSON.parse(data);
-    var billresp={
-      status:true,
-      message:"Bill Fetched Successfully",
-      data:printdata[printdata.length-1]
-    }
-    res.json(billresp);
-  })
+        var arrlastdata=[]
+        var printdata=[];
+        request({url:url+'bills.json'},(err,res)=>{
+            const data=JSON.parse(res.body);
+            for(let key in data){
+                arrlastdata.push([key,data[key]])
+            }
+            for(let i=0;i<arrlastdata.length;i++){
+                printdata.push(arrlastdata[i][1]);
+            }
+        })
+        setTimeout(() => {
+            res.send({status:true,message:"Bill Fetched Successfully",data:printdata[printdata.length-1]});
+        }, timeout);
 })
 
-app.get('/biller_name',function(req,res){
-  const names=["MalleeshKanna","Kalamani"];
-  res.send(names);
-})
 
 app.get('/bill_list',function(req,res){
-  fs.readFile('bills.json','utf-8',(err,data)=>{
-    res.send(JSON.parse(data))
-  })
-})
-
-app.post('/password',function(req,res){
-  fs.readFile('password.json','utf-8',(err,data)=>{
-    
-    var password=JSON.parse(data);
-    if(password.password==req.body.password){
-      res.json({status:true,message:"Password is correct"})
-    }
-    else{
-      res.json({status:false,message:"Password is incorrect"})
-    }
-  })
-})
-
-app.post('/resetpassword',function(req,res){
-  fs.readFile('password.json','utf-8',function(err,data){
-    var password=JSON.parse(data);
-    if(password.password==req.body.oldpassword){
-      var newpass={
-        password:req.body.newpassword
-      }
-      fs.writeFile('password.json',JSON.stringify(newpass),function(data){
-        res.json({status:true,message:"Password Changed Successfully"})
-      })
-    }else{
-      res.json({status:false,message:"Old password is incorrect"})
-    }
-  })
-})
-
-app.get('/welcome',function(req,res){
-  res.send("Hello Malleesh")
+    var allbill=[];
+    var arrallbills=[];
+    request({url:url+'bills.json'},(err,res)=>{
+        const data=JSON.parse(res.body);
+        for(let key in data){
+            arrallbills.push([key,data[key]])
+        }
+        for(let i=0;i<arrallbills.length;i++){
+            allbill.push(arrallbills[i][1]);
+        }
+    })
+    setTimeout(() => {
+        res.send({status:true,message:"Bill Fetched Successfully",data:allbill});
+    }, timeout);
 })
 
 app.post('/get_bill',function(req,res){
-  var bill_id=req.body.getterid;
-  var arrfilter=[];
-  fs.readFile('bills.json','utf-8',function(err,data){
-    var billdata=JSON.parse(data);
-    var arrlist=[];
-    for(let i=0;i<billdata.length;i++){
-      if(billdata[i].invoice_number==bill_id){
-        arrlist.push(billdata[i]);
-      }
-    }
-    res.json(arrlist);
-  })
+    var selectedbill=[];
+    var arrsellbills=[];
+    var lastdata=[];
+    request({url:url+'bills.json'},(err,res)=>{
+        const data=JSON.parse(res.body);
+        for(let key in data){
+            arrsellbills.push([key,data[key]])
+        }
+        for(let i=0;i<arrsellbills.length;i++){
+            selectedbill.push(arrsellbills[i][1]);
+        }
+        for(let i=0;i<selectedbill.length;i++){
+            if(selectedbill[i].invoice_number==req.body.getterid){
+                lastdata.push(selectedbill[i])
+            }
+        }
+    })
+    setTimeout(() => {
+        res.send({status:true,message:"Bill Fetched Successfully",data:lastdata[0]});
+    }, timeout);
+})
+
+
+app.post('/password',function(req,res){
+    var passfilter=[];
+    var passwords=[];
+    request({url:url+'password.json'},(err,res)=>{
+        const data=JSON.parse(res.body);
+        for(let key in data){
+            passwords.push([key,data[key]])
+        }
+        for(let i=0;i<passwords.length;i++){
+            passfilter.push(passwords[i][1]);
+        }
+    })
+    setTimeout(() => {
+        if(passfilter[passfilter.length-1].password==req.body.password){
+            res.send({status:true,message:"password is Correct"});
+        }else{
+            res.send({status:false,message:"password is Incorrect"});
+        }
+    }, timeout);
+})
+
+app.post('/resetpassword',function(req,res){
+    var resetpassfilter=[];
+    var arrpasswords=[];
+    request({url:url+'password.json'},(err,res)=>{
+        const data=JSON.parse(res.body);
+        for(let key in data){
+            arrpasswords.push([key,data[key]])
+        }
+        for(let i=0;i<arrpasswords.length;i++){
+            resetpassfilter.push(arrpasswords[i][1]);
+        }
+    })
+    setTimeout(() => {
+        if(resetpassfilter[resetpassfilter.length-1].password==req.body.oldpassword){
+            const obj={password:req.body.newpassword};
+            request.post({url:url+'password.json',form:JSON.stringify(obj),headers:header},function(error,httpResponse,body){
+                res.send({status:true,message:"password Changed Successfully"});
+            })
+        }else{
+            res.send({status:false,message:"Old Password is Incorrect"});
+        }
+    }, timeout);
 })
 
 app.listen(3000,()=>{
-  console.log('port listening at 3000');
+    console.log("Server is Listening");
 })
